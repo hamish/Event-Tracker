@@ -158,11 +158,8 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
       </div>
 
       <footer>
-        <p className="read-the-docs">
-          Powered by Automerge + Vite + React + TypeScript
-        </p>
         <p>
-          <a href="/event-tracker/">Create a New Event</a>
+          <a href={`${import.meta.env.BASE_URL}event-tracker/`}>Create a New Event</a>
         </p>
       </footer>
     </>
