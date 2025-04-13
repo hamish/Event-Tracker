@@ -1,26 +1,30 @@
-import automergeLogo from '/automerge.png'
 import '@picocss/pico/css/pico.min.css'
 import './App.css'
 import { useDocument } from '@automerge/automerge-repo-react-hooks'
-import { updateText } from '@automerge/automerge/next'
 import type { AutomergeUrl } from '@automerge/automerge-repo'
 import { useRef } from 'react';
 
 export interface Interaction {
   patrol_name: string;
-  interaction_time:Date;
-  done: boolean;
+  interaction_type: string;
+  interaction_time: Date;
+}
+
+export interface Field {
+  field_name: string;
+  control_type: 'input' | 'select' | 'number'; // Added 'number' control type
+  predefined_values?: string[];
 }
 
 export interface TrackedEvent {
+  fields: Field[];
   interactions: Interaction[];
 }
 
+function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: Field[] }) {
+  const fieldRefs = useRef<Record<string, HTMLInputElement | HTMLSelectElement | null>>({}); // Dynamic refs for fields
 
-function App({ docUrl }: { docUrl: AutomergeUrl }) {
-  const patrolNameRef = useRef<HTMLInputElement>(null);
-
-  const [doc, changeDoc] = useDocument<TrackedEvent>(docUrl)
+  const [doc, changeDoc] = useDocument<TrackedEvent>(docUrl) || {};
 
   return (
     <>
@@ -30,57 +34,82 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
         </h1>
       </header>
 
-    <input ref={patrolNameRef} name='patrol_name' />
+      <table>
+        <tbody>
+          {doc?.fields?.map((field, index) => (
+            <tr key={index}>
+              <td><label>{field.field_name}</label></td>
+              <td>
+                {field.control_type === 'select' ? (
+                  <select
+                    ref={(el) => (fieldRefs.current[field.field_name] = el)}
+                    name={field.field_name}
+                  >
+                    {field.predefined_values?.map((value, idx) => (
+                      <option key={idx} value={value}>{value}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    ref={(el) => (fieldRefs.current[field.field_name] = el)}
+                    name={field.field_name}
+                    type={field.control_type === 'number' ? 'number' : 'text'} // Handle 'number' control type
+                  />
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <button type="button" onClick={() => {
-        console.log("button");
-        changeDoc(d =>
+        changeDoc?.(d =>
           d.interactions.unshift({
-            patrol_name: patrolNameRef.current?.value || "",
+            patrol_name: fieldRefs.current['Patrol Name']?.value || "",
             interaction_time: new Date(),
-            done: false
-            
+            interaction_type: fieldRefs.current['Interaction Type']?.value || ""
           })
         );
+        Object.keys(fieldRefs.current).forEach(key => {
+          if (fieldRefs.current[key]) {
+            fieldRefs.current[key]!.value = "";
+          }
+        });
       }}>
         <b>+</b> New Interaction
       </button>
 
       <div id='task-list'>
-
-      {doc && doc.interactions?.map(({ patrol_name, interaction_time, done }, index) =>
-        <div className='task' key={index}>
-          <input
-            type="checkbox"
-            checked={done}
-            onChange={() => changeDoc(d => {
-              d.interactions[index].done = !d.interactions[index].done;
-            })}
-          />
-
-          <input type="text"
-            placeholder='What needs doing?' value={patrol_name || ''}
-            onChange={(e) => changeDoc(d => {
-              // Use Automerge's updateText for efficient multiplayer edits
-              // (as opposed to replacing the whole patrol_name on each edit)
-              updateText(d.interactions[index], ['patrol_name'], e.target.value)
-            })}
-            style={done ? {textDecoration: 'line-through'}: {}}
-          />
-          {interaction_time.toTimeString()}
-        </div>)
-      }
-
+        <table>
+          <thead>
+            <tr>
+              {doc?.fields?.map((field, index) => (
+                <th key={index}>{field.field_name}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {doc?.interactions?.map((interaction, rowIndex) => (
+              <tr key={rowIndex}>
+                {doc.fields.map((field, colIndex) => (
+                  <td key={colIndex}>{interaction[field.field_name.toLowerCase().replace(/ /g, '_')] || ''}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-
-
       <footer>
-        <p className="read-the-docs">Powered by Automerge + Vite + React + TypeScript
+        <p className="read-the-docs">
+          Powered by Automerge + Vite + React + TypeScript
+        </p>
+        <p>
+          <a href="/event-tracker/">Create a New Event</a>
         </p>
       </footer>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

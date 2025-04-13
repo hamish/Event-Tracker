@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App, { type TrackedEvent } from './App.tsx'
+import App, { type Field, type TrackedEvent } from './App.tsx'
+import type { AutomergeUrl } from '@automerge/automerge-repo'
 
 import './index.css'
 import { isValidAutomergeUrl, Repo } from '@automerge/automerge-repo'
@@ -13,20 +14,29 @@ const repo = new Repo({
   storage: new IndexedDBStorageAdapter(),
 })
 
+const initialFields: Field[] = [
+  { field_name: 'Patrol Name', control_type: 'input' },
+  { field_name: 'Interaction Type', control_type: 'select', predefined_values: ['Check In', 'Check Out', 'Score', 'Other'] },
+  { field_name: 'Score', control_type: 'number' } // Changed 'Score' field to be of type 'number'
+];
+
+function AppWrapper({ docUrl }: { docUrl: AutomergeUrl }) {
+  return <App docUrl={docUrl} initialFields={initialFields} />;
+}
 
 const rootDocUrl = `${document.location.hash.substring(1)}`
 let handle
 if (isValidAutomergeUrl(rootDocUrl)) {
   handle = repo.find(rootDocUrl)
 } else {
-  handle = repo.create<TrackedEvent>({interactions: []})
+  handle = repo.create<TrackedEvent>({ fields: initialFields, interactions: [] })
 }
 const docUrl = document.location.hash = handle.url
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <RepoContext.Provider value={repo}>
-      <App docUrl={docUrl} />
+      <AppWrapper docUrl={docUrl} />
     </RepoContext.Provider>
   </React.StrictMode>,
 )
