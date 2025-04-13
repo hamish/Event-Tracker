@@ -1,8 +1,7 @@
-import '@picocss/pico/css/pico.min.css'
-import './App.css'
-import { useDocument } from '@automerge/automerge-repo-react-hooks'
-import type { AutomergeUrl } from '@automerge/automerge-repo'
-import { useRef, useState } from 'react';
+import '@picocss/pico/css/pico.min.css';
+import './App.css';
+import { useDocument } from '@automerge/automerge-repo-react-hooks';
+import { useRef } from 'react';
 
 export interface Interaction {
   patrol_name: string;

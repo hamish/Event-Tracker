@@ -1,18 +1,18 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App, { type Field, type TrackedEvent } from './App.tsx'
-import type { AutomergeUrl } from '@automerge/automerge-repo'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App, { type Field, type TrackedEvent } from './App.tsx';
+import type { AutomergeUrl } from '@automerge/automerge-repo';
 
-import './index.css'
-import { isValidAutomergeUrl, Repo } from '@automerge/automerge-repo'
-import { BrowserWebSocketClientAdapter } from '@automerge/automerge-repo-network-websocket'
-import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb"
-import { RepoContext } from '@automerge/automerge-repo-react-hooks'
+import './index.css';
+import { isValidAutomergeUrl, Repo } from '@automerge/automerge-repo';
+import { BrowserWebSocketClientAdapter } from '@automerge/automerge-repo-network-websocket';
+import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
+import { RepoContext } from '@automerge/automerge-repo-react-hooks';
 
 const repo = new Repo({
   network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
   storage: new IndexedDBStorageAdapter(),
-})
+});
 
 const initialFields: Field[] = [
   { field_id: 'patrol_name', field_name: 'Patrol Name', control_type: 'input' },
