@@ -11,8 +11,9 @@ export interface Interaction {
 }
 
 export interface Field {
+  field_id: string; // Unique identifier for the field
   field_name: string;
-  control_type: 'input' | 'select' | 'number'; // Added 'number' control type
+  control_type: 'input' | 'select' | 'number';
   predefined_values?: string[];
 }
 
@@ -42,8 +43,8 @@ function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: F
               <td>
                 {field.control_type === 'select' ? (
                   <select
-                    ref={(el) => (fieldRefs.current[field.field_name] = el)}
-                    name={field.field_name}
+                    ref={(el) => (fieldRefs.current[field.field_id] = el)}
+                    name={field.field_id}
                   >
                     {field.predefined_values?.map((value, idx) => (
                       <option key={idx} value={value}>{value}</option>
@@ -51,9 +52,9 @@ function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: F
                   </select>
                 ) : (
                   <input
-                    ref={(el) => (fieldRefs.current[field.field_name] = el)}
-                    name={field.field_name}
-                    type={field.control_type === 'number' ? 'number' : 'text'} // Handle 'number' control type
+                    ref={(el) => (fieldRefs.current[field.field_id] = el)}
+                    name={field.field_id}
+                    type={field.control_type === 'number' ? 'number' : 'text'}
                   />
                 )}
               </td>
@@ -65,8 +66,8 @@ function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: F
       <button type="button" onClick={() => {
         const newInteraction: Partial<Interaction> = {};
         doc?.fields.forEach(field => {
-          const fieldValue = fieldRefs.current[field.field_name]?.value || "";
-          newInteraction[field.field_name.toLowerCase().replace(/ /g, '_')] = fieldValue;
+          const fieldValue = fieldRefs.current[field.field_id]?.value || "";
+          newInteraction[field.field_id] = fieldValue;
         });
         changeDoc?.(d => d.interactions.unshift({
           ...newInteraction,
@@ -94,7 +95,7 @@ function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: F
             {doc?.interactions?.map((interaction, rowIndex) => (
               <tr key={rowIndex}>
                 {doc.fields.map((field, colIndex) => (
-                  <td key={colIndex}>{interaction[field.field_name.toLowerCase().replace(/ /g, '_')] || ''}</td>
+                  <td key={colIndex}>{interaction[field.field_id] || ''}</td>
                 ))}
               </tr>
             ))}
