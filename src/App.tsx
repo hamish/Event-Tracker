@@ -2,11 +2,13 @@ import '@picocss/pico/css/pico.min.css';
 import './App.css';
 import { useDocument } from '@automerge/automerge-repo-react-hooks';
 import { useRef } from 'react';
+import type { AutomergeUrl } from '@automerge/automerge-repo'
 
 export interface Interaction {
   patrol_name: string;
   interaction_type: string;
   interaction_time: Date;
+  [key: string]: any; // Add this line to allow string indexing
 }
 
 export interface Field {
@@ -40,7 +42,16 @@ function downloadCSV(interactions: Interaction[], fields: Field[]) {
   document.body.removeChild(link);
 }
 
-function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: Field[] }) {
+function toggleButtonSelection(button: HTMLButtonElement) {
+  const isSelected = button.classList.contains('selected');
+  if (isSelected) {
+    button.classList.remove('selected');
+  } else {
+    button.classList.add('selected');
+  }
+}
+
+function App({ docUrl }: { docUrl: AutomergeUrl }) {
   const fieldRefs = useRef<Record<string, HTMLInputElement | HTMLSelectElement | null>>({}); // Dynamic refs for fields
 
   const [doc, changeDoc] = useDocument<TrackedEvent>(docUrl) || {};
@@ -60,14 +71,34 @@ function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: F
               <td><label>{field.field_name}</label></td>
               <td>
                 {field.control_type === 'select' ? (
-                  <select
-                    ref={(el) => (fieldRefs.current[field.field_id] = el)}
-                    name={field.field_id}
-                  >
+                  <div>
                     {field.predefined_values?.map((value, idx) => (
-                      <option key={idx} value={value}>{value}</option>
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          if (fieldRefs.current[field.field_id]) {
+                            fieldRefs.current[field.field_id]!.value = value;
+                          }
+                          // Update the selected button's style
+                          const buttons = document.querySelectorAll(`button[name='${field.field_id}']`);
+                          buttons.forEach(button => button.classList.remove('selected')); // Reset all buttons
+                          const selectedButton = buttons[idx] as HTMLButtonElement;
+                          if (selectedButton) {
+                            toggleButtonSelection(selectedButton);
+                          }
+                        }}
+                        name={field.field_id} // Add name attribute for easier selection
+                      >
+                        {value}
+                      </button>
                     ))}
-                  </select>
+                    <input
+                      ref={(el) => (fieldRefs.current[field.field_id] = el)}
+                      name={field.field_id}
+                      type="hidden"
+                    />
+                  </div>
                 ) : (
                   <input
                     ref={(el) => (fieldRefs.current[field.field_id] = el)}
