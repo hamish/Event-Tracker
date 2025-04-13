@@ -1,8 +1,8 @@
 import '@picocss/pico/css/pico.min.css';
 import './App.css';
 import { useDocument } from '@automerge/automerge-repo-react-hooks';
-import { useRef } from 'react';
-import type { AutomergeUrl } from '@automerge/automerge-repo'
+import { useState } from 'react';
+import type { AutomergeUrl } from '@automerge/automerge-repo';
 
 export interface Interaction {
   patrol_name: string;
@@ -42,19 +42,38 @@ function downloadCSV(interactions: Interaction[], fields: Field[]) {
   document.body.removeChild(link);
 }
 
-function toggleButtonSelection(button: HTMLButtonElement) {
-  const isSelected = button.classList.contains('selected');
-  if (isSelected) {
-    button.classList.remove('selected');
-  } else {
-    button.classList.add('selected');
-  }
-}
-
 function App({ docUrl }: { docUrl: AutomergeUrl }) {
-  const fieldRefs = useRef<Record<string, HTMLInputElement | HTMLSelectElement | null>>({}); // Dynamic refs for fields
-
+  const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [doc, changeDoc] = useDocument<TrackedEvent>(docUrl) || {};
+
+  const handleInputChange = (fieldId: string, value: string) => {
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      [fieldId]: value,
+    }));
+  };
+
+  const handleNewInteraction = () => {
+    const newInteraction: Partial<Interaction> = {};
+    doc?.fields.forEach(field => {
+      const fieldValue = formValues[field.field_id] || "";
+      newInteraction[field.field_id] = fieldValue;
+    });
+    changeDoc?.(d => d.interactions.unshift({
+      ...newInteraction,
+      interaction_time: new Date(),
+    } as Interaction));
+
+    setFormValues(prevValues => {
+      const updatedValues = { ...prevValues };
+      doc?.fields.forEach(field => {
+        if (field.field_id === 'patrol_name' || field.field_id === 'score') {
+          updatedValues[field.field_id] = "";
+        }
+      });
+      return updatedValues;
+    });
+  };
 
   return (
     <>
@@ -76,34 +95,18 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => {
-                          if (fieldRefs.current[field.field_id]) {
-                            fieldRefs.current[field.field_id]!.value = value;
-                          }
-                          // Update the selected button's style
-                          const buttons = document.querySelectorAll(`button[name='${field.field_id}']`);
-                          buttons.forEach(button => button.classList.remove('selected')); // Reset all buttons
-                          const selectedButton = buttons[idx] as HTMLButtonElement;
-                          if (selectedButton) {
-                            toggleButtonSelection(selectedButton);
-                          }
-                        }}
-                        name={field.field_id} // Add name attribute for easier selection
+                        className={`button ${formValues[field.field_id] === value ? 'selected' : ''}`}
+                        onClick={() => handleInputChange(field.field_id, value)}
                       >
                         {value}
                       </button>
                     ))}
-                    <input
-                      ref={(el) => (fieldRefs.current[field.field_id] = el)}
-                      name={field.field_id}
-                      type="hidden"
-                    />
                   </div>
                 ) : (
                   <input
-                    ref={(el) => (fieldRefs.current[field.field_id] = el)}
-                    name={field.field_id}
                     type={field.control_type === 'number' ? 'number' : 'text'}
+                    value={formValues[field.field_id] || ''}
+                    onChange={(e) => handleInputChange(field.field_id, e.target.value)}
                   />
                 )}
               </td>
@@ -112,22 +115,7 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
         </tbody>
       </table>
 
-      <button type="button" onClick={() => {
-        const newInteraction: Partial<Interaction> = {};
-        doc?.fields.forEach(field => {
-          const fieldValue = fieldRefs.current[field.field_id]?.value || "";
-          newInteraction[field.field_id] = fieldValue;
-        });
-        changeDoc?.(d => d.interactions.unshift({
-          ...newInteraction,
-          interaction_time: new Date(),
-        } as Interaction));
-        Object.keys(fieldRefs.current).forEach(key => {
-          if (fieldRefs.current[key]) {
-            fieldRefs.current[key]!.value = "";
-          }
-        });
-      }}>
+      <button type="button" onClick={handleNewInteraction}>
         <b>+</b> New Interaction
       </button>
 
