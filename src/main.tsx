@@ -14,9 +14,10 @@ const repo = new Repo({
 })
 
 const initialFields: Field[] = [
+  { field_id: 'base_name', field_name: 'Base Name', control_type: 'input', preserve_value: true },
   { field_id: 'patrol_name', field_name: 'Patrol Name', control_type: 'input' },
-  { field_id: 'interaction_type', field_name: 'Interaction Type', control_type: 'select', predefined_values: ['Check In', 'Check Out', 'Score', 'Other'] },
-  { field_id: 'score', field_name: 'Score', control_type: 'number' } // Changed 'Score' field to be of type 'number'
+  { field_id: 'interaction_type', field_name: 'Interaction Type', control_type: 'select', predefined_values: ['Check In', 'Check Out', 'Score', 'Other'], preserve_value: true },
+  { field_id: 'score', field_name: 'Score', control_type: 'number' }, // Changed 'Score' field to be of type 'number'
 ];
 
 const rootDocUrl = `${document.location.hash.substring(1)}`

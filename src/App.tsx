@@ -16,6 +16,7 @@ export interface Field {
   field_name: string;
   control_type: 'input' | 'select' | 'number';
   predefined_values?: string[];
+  preserve_value?: boolean;
 }
 
 export interface TrackedEvent {
@@ -67,7 +68,7 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
     setFormValues(prevValues => {
       const updatedValues = { ...prevValues };
       doc?.fields.forEach(field => {
-        if (field.field_id === 'patrol_name' || field.field_id === 'score') {
+        if (!field.preserve_value) {
           updatedValues[field.field_id] = "";
         }
       });
@@ -147,7 +148,7 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
 
       <footer>
         <p>
-          <a href={`${import.meta.env.BASE_URL}/`}>Create a New Event</a>
+          <a href={`${import.meta.env.BASE_URL}`}>Create a New Event</a>
         </p>
       </footer>
     </>
