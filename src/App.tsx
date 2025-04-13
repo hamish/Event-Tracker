@@ -159,7 +159,7 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
 
       <footer>
         <p>
-          <a href={`${import.meta.env.BASE_URL}event-tracker/`}>Create a New Event</a>
+          <a href={`${import.meta.env.BASE_URL}/`}>Create a New Event</a>
         </p>
       </footer>
     </>
