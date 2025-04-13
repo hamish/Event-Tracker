@@ -63,13 +63,15 @@ function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: F
       </table>
 
       <button type="button" onClick={() => {
-        changeDoc?.(d =>
-          d.interactions.unshift({
-            patrol_name: fieldRefs.current['Patrol Name']?.value || "",
-            interaction_time: new Date(),
-            interaction_type: fieldRefs.current['Interaction Type']?.value || ""
-          })
-        );
+        const newInteraction: Partial<Interaction> = {};
+        doc?.fields.forEach(field => {
+          const fieldValue = fieldRefs.current[field.field_name]?.value || "";
+          newInteraction[field.field_name.toLowerCase().replace(/ /g, '_')] = fieldValue;
+        });
+        changeDoc?.(d => d.interactions.unshift({
+          ...newInteraction,
+          interaction_time: new Date(),
+        } as Interaction));
         Object.keys(fieldRefs.current).forEach(key => {
           if (fieldRefs.current[key]) {
             fieldRefs.current[key]!.value = "";
