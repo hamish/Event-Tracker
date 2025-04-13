@@ -2,7 +2,7 @@ import '@picocss/pico/css/pico.min.css'
 import './App.css'
 import { useDocument } from '@automerge/automerge-repo-react-hooks'
 import type { AutomergeUrl } from '@automerge/automerge-repo'
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 export interface Interaction {
   patrol_name: string;
@@ -20,6 +20,25 @@ export interface Field {
 export interface TrackedEvent {
   fields: Field[];
   interactions: Interaction[];
+}
+
+function downloadCSV(interactions: Interaction[], fields: Field[]) {
+  const headers = fields.map(field => field.field_name).concat('Interaction Time');
+  const rows = interactions.map(interaction => {
+    return fields.map(field => interaction[field.field_id] || '').concat(interaction.interaction_time ? new Date(interaction.interaction_time).toISOString() : '');
+  });
+
+  const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'interactions.csv');
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: Field[] }) {
@@ -103,6 +122,9 @@ function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: F
             ))}
           </tbody>
         </table>
+        <button type="button" onClick={() => downloadCSV(doc?.interactions || [], doc?.fields || [])}>
+          Download CSV
+        </button>
       </div>
 
       <footer>
