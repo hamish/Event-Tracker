@@ -89,6 +89,7 @@ function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: F
               {doc?.fields?.map((field, index) => (
                 <th key={index}>{field.field_name}</th>
               ))}
+              <th>Interaction Time</th> {/* New column header */}
             </tr>
           </thead>
           <tbody>
@@ -97,6 +98,7 @@ function App({ docUrl, initialFields }: { docUrl: AutomergeUrl; initialFields: F
                 {doc.fields.map((field, colIndex) => (
                   <td key={colIndex}>{interaction[field.field_id] || ''}</td>
                 ))}
+                <td>{interaction.interaction_time ? new Date(interaction.interaction_time).toLocaleString() : ''}</td> {/* New column data */}
               </tr>
             ))}
           </tbody>
