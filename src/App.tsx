@@ -16,9 +16,11 @@ export interface Interaction {
 export interface Field {
   field_id: string; // Unique identifier for the field
   field_name: string;
-  control_type: 'input' | 'select' | 'number';
+  control_type: 'input' | 'select' | 'number' | 'number_buttons';
   predefined_values?: string[];
   preserve_value?: boolean;
+  min?: number;
+  max?: number;
 }
 
 export interface TrackedEvent {
@@ -103,6 +105,29 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
                       {value}
                     </button>
                   ))}
+                </div>
+              ) : field.control_type === 'number_buttons' ? (
+                <div className="btn-group" role="group">
+                  <button
+                    type="button"
+                    className={`btn btn-outline-secondary active`}
+                    onClick={() => handleInputChange(field.field_id, '')}
+                  >
+                    None
+                  </button>
+                  {Array.from({ length: (field.max || 10) - (field.min || 0) + 1 }, (_, idx) => {
+                    const value = (field.min || 0) + idx;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        className={`btn btn-outline-primary ${formValues[field.field_id] === value.toString() ? 'active' : ''}`}
+                        onClick={() => handleInputChange(field.field_id, value.toString())}
+                      >
+                        {value}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
                 <input
