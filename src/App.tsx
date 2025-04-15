@@ -1,8 +1,10 @@
 import '@picocss/pico/css/pico.min.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { useDocument } from '@automerge/automerge-repo-react-hooks';
 import { useState } from 'react';
 import type { AutomergeUrl } from '@automerge/automerge-repo';
+import { Button, Table } from 'react-bootstrap';
 
 export interface Interaction {
   patrol_name: string;
@@ -84,44 +86,47 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
         </h1>
       </header>
 
-      <table>
-        <tbody>
+      <div className="container">
+        <div className="row">
           {doc?.fields?.map((field, index) => (
-            <tr key={index}>
-              <td><label>{field.field_name}</label></td>
-              <td>
-                {field.control_type === 'select' ? (
-                  <div>
-                    {field.predefined_values?.map((value, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        className={`button ${formValues[field.field_id] === value ? 'selected' : ''}`}
-                        onClick={() => handleInputChange(field.field_id, value)}
-                      >
-                        {value}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <input
-                    type={field.control_type === 'number' ? 'number' : 'text'}
-                    value={formValues[field.field_id] || ''}
-                    onChange={(e) => handleInputChange(field.field_id, e.target.value)}
-                  />
-                )}
-              </td>
-            </tr>
+            <div className="col-md-6 mb-3" key={index}>
+              <label className="form-label">{field.field_name}</label>
+              {field.control_type === 'select' ? (
+                <div className="btn-group" role="group">
+                  {field.predefined_values?.map((value, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className={`btn btn-outline-primary ${formValues[field.field_id] === value ? 'active' : ''}`}
+                      onClick={() => handleInputChange(field.field_id, value)}
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <input
+                  type={field.control_type === 'number' ? 'number' : 'text'}
+                  className="form-control"
+                  value={formValues[field.field_id] || ''}
+                  onChange={(e) => handleInputChange(field.field_id, e.target.value)}
+                />
+              )}
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
 
-      <button type="button" onClick={handleNewInteraction}>
-        <b>+</b> New Interaction
-      </button>
+        <div className="row">
+          <div className="col-12">
+            <Button type="button" className="btn btn-primary" onClick={handleNewInteraction}>
+              <b>+</b> New Interaction
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <div id='task-list'>
-        <table>
+        <Table>
           <thead>
             <tr>
               {doc?.fields?.map((field, index) => (
@@ -140,10 +145,10 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
               </tr>
             ))}
           </tbody>
-        </table>
-        <button type="button" onClick={() => downloadCSV(doc?.interactions || [], doc?.fields || [])}>
+        </Table>
+        <Button type="button" onClick={() => downloadCSV(doc?.interactions || [], doc?.fields || [])}>
           Download CSV
-        </button>
+        </Button>
       </div>
 
       <footer>
